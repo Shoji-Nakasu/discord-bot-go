@@ -1,2 +1,3 @@
-# discord-to-slack
-Discordの入室をslackのチャンネルに通知しくれるbot
+# discord-bot-go
+- Discordのボイスチャンネル入退室通知
+- 特定テキストに反応するチャットボット
