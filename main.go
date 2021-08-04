@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -12,6 +14,19 @@ import (
 )
 
 func main() {
+	http.HandleFunc("/", indexHandler)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+		log.Printf("Defaulting to port %s", port)
+	}
+
+	log.Printf("Listening on port %s", port)
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
+		log.Fatal(err)
+	}
+
 	dg, err := discordgo.New("Bot " + config.Config.Token) //"Bot"という接頭辞がないと401 unauthorizedエラーが起きる
 	if err != nil {
 		fmt.Println("error:start\n", err)
@@ -25,8 +40,8 @@ func main() {
 	}
 	fmt.Println("BOT Running...") //シグナル受け取り可にしてチャネル受け取りを待つ（受け取ったら終了）
 	sc := make(chan os.Signal, 1)
-	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, syscall.SIGTERM) 
-	<- sc
+	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, syscall.SIGTERM)
+	<-sc
 	dg.Close()
 }
 
@@ -48,4 +63,13 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, "test2")
 		fmt.Println("> test2")
 	}
+}
+
+// indexHandler responds to requests with our greeting.
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+	fmt.Fprint(w, "Hello, World!")
 }
